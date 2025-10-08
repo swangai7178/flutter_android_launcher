@@ -46,9 +46,9 @@ class _LauncherHomeState extends State<LauncherHome> {
           .toList();
     });
   } on PlatformException catch (e) {
-    print("⚠️ Error loading apps: ${e.message}");
+   debugPrint(e.toString());
   } catch (e) {
-    print("⚠️ Error loading apps: $e");
+   debugPrint(e.toString());
   }
 }
 
@@ -58,7 +58,7 @@ class _LauncherHomeState extends State<LauncherHome> {
     try {
       return base64Decode(base64String);
     } catch (e) {
-      print("⚠️ Invalid Base64 icon: $e");
+     
       return null;
     }
   }
