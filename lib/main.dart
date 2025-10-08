@@ -1,23 +1,32 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() {
-  runApp(const LauncherApp());
-}
+void main() => runApp(const MyLauncherApp());
 
-class LauncherApp extends StatefulWidget {
-  const LauncherApp({super.key});
+class MyLauncherApp extends StatelessWidget {
+  const MyLauncherApp({super.key});
 
   @override
-  State<LauncherApp> createState() => _LauncherAppState();
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: LauncherHome(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
 }
 
-class _LauncherAppState extends State<LauncherApp> {
-  static const platform = MethodChannel('com.example.launcher/apps');
+class LauncherHome extends StatefulWidget {
+  const LauncherHome({super.key});
 
+  @override
+  State<LauncherHome> createState() => _LauncherHomeState();
+}
+
+class _LauncherHomeState extends State<LauncherHome> {
+  static const platform = MethodChannel('com.yourlauncher/apps');
   List<Map<String, dynamic>> _apps = [];
-  bool _loading = true;
-  String _error = '';
 
   @override
   void initState() {
@@ -27,91 +36,81 @@ class _LauncherAppState extends State<LauncherApp> {
 
   Future<void> _loadApps() async {
     try {
-      final List<dynamic> apps = await platform.invokeMethod('getAllApps');
+      final result = await platform.invokeMethod('getInstalledApps');
       setState(() {
-        _apps = apps.map((e) => Map<String, dynamic>.from(e)).toList();
-        _loading = false;
-      });
-    } on PlatformException catch (e) {
-      setState(() {
-        _error = e.message ?? 'Error loading apps';
-        _loading = false;
+        _apps = List<Map>.from(result)
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
       });
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
+      debugPrint("⚠️ Error loading apps: $e");
     }
   }
 
-  Future<void> _launchApp(String packageName) async {
+  // 🐛 FIX: Clean the Base64 string of newlines and spaces before decoding.
+  Uint8List _decodeIcon(String base64String) {
+    // 1. Remove optional "data:image/png;base64," prefix and get the Base64 part
+    final String base64Part = base64String.split(',').last;
+    
+    // 2. Remove any newline or space characters introduced by Base64.DEFAULT on Android
+    final String cleanBase64 = base64Part.replaceAll('\n', '').replaceAll(' ', '');
+
+    return base64Decode(cleanBase64);
+  }
+
+  Future<void> _openApp(String packageName) async {
     try {
-      await platform.invokeMethod('launchApp', {'package': packageName});
+      await platform.invokeMethod('openApp', {"package": packageName});
     } on PlatformException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error launching app: ${e.message}')),
-      );
+      debugPrint("Failed to open app: ${e.message}");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'My Launcher',
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _error.isNotEmpty
-                  ? Center(child: Text(_error, style: const TextStyle(color: Colors.red)))
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(12),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 0.8,
-                      ),
-                      itemCount: _apps.length,
-                      itemBuilder: (context, index) {
-                        final app = _apps[index];
-                        final iconBytes = app['icon'] != null
-                            ? (app['icon'] as List<dynamic>).cast<int>()
-                            : null;
-
-                        return GestureDetector(
-                          onTap: () => _launchApp(app['package']),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (iconBytes != null)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.memory(
-                                    Uint8List.fromList(iconBytes),
-                                    width: 48,
-                                    height: 48,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              else
-                                const Icon(Icons.apps, size: 48, color: Colors.white),
-                              const SizedBox(height: 8),
-                              Text(
-                                app['name'] ?? 'Unknown',
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.white, fontSize: 12),
-                              ),
-                            ],
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: _apps.isEmpty
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
+            : GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: _apps.length,
+                itemBuilder: (context, index) {
+                  final app = _apps[index];
+                  return GestureDetector(
+                    onTap: () => _openApp(app['package']),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.memory(
+                            _decodeIcon(app['icon']),
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          app['name'],
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-        ),
+                  );
+                },
+              ),
       ),
     );
   }
