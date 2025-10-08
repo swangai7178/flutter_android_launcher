@@ -38,27 +38,34 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun getAllInstalledApps(): List<Map<String, Any?>> {
-        val pm = packageManager
-        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-        val appList = mutableListOf<Map<String, Any?>>()
+   private fun getAllInstalledApps(): List<Map<String, Any?>> {
+    val pm = packageManager
+    val intent = Intent(Intent.ACTION_MAIN, null)
+    intent.addCategory(Intent.CATEGORY_LAUNCHER)
 
-        for (app in packages) {
-            val name = pm.getApplicationLabel(app).toString()
-            val icon = pm.getApplicationIcon(app)
-            val packageName = app.packageName
+    val resolveInfos = pm.queryIntentActivities(intent, 0)
+    val appList = mutableListOf<Map<String, Any?>>()
 
-            val iconBytes = drawableToBytes(icon)
-            appList.add(
-                mapOf(
-                    "name" to name,
-                    "package" to packageName,
-                    "icon" to iconBytes
-                )
+    for (resolveInfo in resolveInfos) {
+        val appInfo = resolveInfo.activityInfo.applicationInfo
+        val name = pm.getApplicationLabel(appInfo).toString()
+        val packageName = appInfo.packageName
+        val icon = pm.getApplicationIcon(appInfo)
+
+        val iconBytes = drawableToBytes(icon)
+        appList.add(
+            mapOf(
+                "name" to name,
+                "package" to packageName,
+                "icon" to iconBytes
             )
-        }
-        return appList
+        )
     }
+
+    // Sort alphabetically
+    return appList.sortedBy { it["name"].toString().lowercase() }
+}
+
 
     private fun launchApp(packageName: String) {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
