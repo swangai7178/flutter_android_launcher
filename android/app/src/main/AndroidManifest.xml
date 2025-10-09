@@ -1,31 +1,45 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <application
-        android:label="launcher"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.launcher">
 
+    <!-- ✅ Permissions -->
+    <!-- Internet access (already present, keep it) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Allows your app to query all installed packages (required for a launcher) -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- (Optional) To read app icons or labels more accurately on some devices -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+
+    <application
+        android:label="WS Launcher"
+        android:name="${applicationName}"
+        android:icon="@mipmap/launcher_icon">
+
+        <!-- ✅ Your Flutter MainActivity that acts as the launcher -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:taskAffinity=""
+            android:taskAffinity="com.example.launcher.HOME_TASK"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
+            <!-- Flutter theme metadata -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
 
-            <!-- Launcher intent -->
+            <!-- ✅ Shows app icon in system launcher (for testing) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- ✅ Home screen intent -->
+            <!-- ✅ Declares your app as a launcher (HOME app) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
@@ -33,13 +47,21 @@
             </intent-filter>
         </activity>
 
+        <!-- Flutter engine -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
 
-    <!-- Required for Flutter plugins -->
+    <!-- ✅ Package visibility declarations -->
     <queries>
+        <!-- See all apps that have launcher activities -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+
+        <!-- (Optional) Example of another query: process text actions -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
