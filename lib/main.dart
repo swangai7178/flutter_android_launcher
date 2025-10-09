@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -29,20 +28,23 @@ class LauncherHome extends StatefulWidget {
 }
 
 class _LauncherHomeState extends State<LauncherHome> {
-  static const platform = MethodChannel('com.yourlauncher/apps');
-  List<Map<String, dynamic>> _apps = [];
-  List<Map<String, dynamic>> _filteredApps = [];
-  bool _loading = true;
-  String _searchQuery = '';
-  String _currentTime = '';
+  String _time = '';
+  String _date = '';
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _loadApps();
     _updateTime();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) => _updateTime());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  void _updateTime() {
+    final now = DateTime.now();
+    setState(() {
+      _time = DateFormat('HH:mm:ss').format(now);
+      _date = DateFormat('EEEE, MMMM d, yyyy').format(now);
+    });
   }
 
   @override
@@ -51,11 +53,126 @@ class _LauncherHomeState extends State<LauncherHome> {
     super.dispose();
   }
 
-  void _updateTime() {
-    final now = DateTime.now();
-    setState(() {
-      _currentTime = DateFormat('HH:mm:ss').format(now);
-    });
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Background logo watermark
+          Align(
+            alignment: Alignment.center,
+            child: Opacity(
+              opacity: 0.05,
+              child: Image.asset(
+                'assets/icons/icon.png',
+                width: 300,
+              ),
+            ),
+          ),
+
+          // Foreground content
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 80),
+              Text(
+                _time,
+                style: const TextStyle(
+                  color: Colors.greenAccent,
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Courier',
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                _date,
+                style: const TextStyle(
+                  color: Colors.greenAccent,
+                  fontSize: 16,
+                  fontFamily: 'Courier',
+                ),
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                "Welcome back, Wangai Samuel",
+                style: TextStyle(
+                  color: Colors.greenAccent,
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                  fontFamily: 'Courier',
+                ),
+              ),
+              const SizedBox(height: 50),
+
+              // "Open Apps" button
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent,
+                  foregroundColor: Colors.black,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AppsPage()),
+                  );
+                },
+                child: const Text(
+                  "Open Apps",
+                  style: TextStyle(
+                    fontFamily: 'Courier',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Text(
+                  "WS Launcher",
+                  style: TextStyle(
+                    color: Colors.greenAccent.withOpacity(0.7),
+                    fontFamily: 'Courier',
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =================== APP LIST PAGE ===================
+
+class AppsPage extends StatefulWidget {
+  const AppsPage({super.key});
+
+  @override
+  State<AppsPage> createState() => _AppsPageState();
+}
+
+class _AppsPageState extends State<AppsPage> {
+  static const platform = MethodChannel('com.yourlauncher/apps');
+  List<Map<String, dynamic>> _apps = [];
+  List<Map<String, dynamic>> _filteredApps = [];
+  bool _loading = true;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadApps();
   }
 
   Future<void> _loadApps() async {
@@ -107,56 +224,29 @@ class _LauncherHomeState extends State<LauncherHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: const Text(
+          "Installed Apps",
+          style: TextStyle(color: Colors.greenAccent, fontFamily: 'Courier'),
+        ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.greenAccent),
+      ),
       body: SafeArea(
         child: Stack(
           children: [
-            // Background watermark
             Align(
               alignment: Alignment.bottomCenter,
               child: Opacity(
-                opacity: 0.08,
-                child: Image.asset(
-                  'assets/icons/icon.png', // <- Add your logo in assets
-                  width: 250,
-                ),
+                opacity: 0.05,
+                child: Image.asset('assets/icons/icon.png', width: 250),
               ),
             ),
-
-            // Foreground content
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _currentTime,
-                        style: const TextStyle(
-                          color: Colors.greenAccent,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Courier',
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        "Welcome to WS Launcher",
-                        style: TextStyle(
-                          color: Colors.greenAccent,
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Search bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(12.0),
                   child: TextField(
                     style: const TextStyle(color: Colors.greenAccent),
                     decoration: InputDecoration(
@@ -181,14 +271,11 @@ class _LauncherHomeState extends State<LauncherHome> {
                     onChanged: _searchApps,
                   ),
                 ),
-                const SizedBox(height: 10),
-
-                // App list
                 Expanded(
                   child: _loading
                       ? const Center(
-                          child: CircularProgressIndicator(
-                              color: Colors.greenAccent),
+                          child:
+                              CircularProgressIndicator(color: Colors.greenAccent),
                         )
                       : _filteredApps.isEmpty
                           ? const Center(
@@ -198,7 +285,6 @@ class _LauncherHomeState extends State<LauncherHome> {
                               ),
                             )
                           : ListView.builder(
-                              physics: const BouncingScrollPhysics(),
                               itemCount: _filteredApps.length,
                               itemBuilder: (context, index) {
                                 final app = _filteredApps[index];
@@ -210,9 +296,6 @@ class _LauncherHomeState extends State<LauncherHome> {
                                           width: 40,
                                           height: 40,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stack) =>
-                                              const Icon(Icons.apps,
-                                                  color: Colors.greenAccent),
                                         )
                                       : const Icon(Icons.apps,
                                           color: Colors.greenAccent),
@@ -227,21 +310,6 @@ class _LauncherHomeState extends State<LauncherHome> {
                             ),
                 ),
               ],
-            ),
-
-            // Signature footer
-            Positioned(
-              bottom: 15,
-              right: 15,
-              child: Text(
-                "Wangai Samuel",
-                style: TextStyle(
-                  color: Colors.greenAccent.withOpacity(0.7),
-                  fontStyle: FontStyle.italic,
-                  fontFamily: 'Courier',
-                  fontSize: 14,
-                ),
-              ),
             ),
           ],
         ),
