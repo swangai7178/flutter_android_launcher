@@ -58,97 +58,143 @@ class _LauncherHomeState extends State<LauncherHome> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
-        children: [
-          // Background logo watermark
-          Align(
-            alignment: Alignment.center,
-            child: Opacity(
-              opacity: 0.05,
-              child: Image.asset(
-                'assets/icons/icon.png',
-                width: 300,
-              ),
-            ),
+  children: [
+    // 🔷 Background logo watermark (slightly more visible)
+    Align(
+      alignment: Alignment.center,
+      child: Opacity(
+        opacity: 0.12, // increased from 0.05 → more visible
+        child: Image.asset(
+          'assets/icons/icon.png',
+          width: 300,
+        ),
+      ),
+    ),
+
+    // 🔷 Foreground content
+    Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 100),
+        Text(
+          _time,
+          style: const TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Courier',
           ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          _date,
+          style: const TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 16,
+            fontFamily: 'Courier',
+          ),
+        ),
+        const SizedBox(height: 30),
+        const Text(
+          "Welcome back, Wangai Samuel",
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 18,
+            fontStyle: FontStyle.italic,
+            fontFamily: 'Courier',
+          ),
+        ),
+        const Spacer(),
 
-          // Foreground content
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        // 🔷 Bottom Icon Dock
+        Padding(
+          padding: const EdgeInsets.only(bottom: 30),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const SizedBox(height: 80),
-              Text(
-                _time,
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Courier',
-                ),
+              // 📱 SIM Toolkit Icon
+              IconButton(
+                iconSize: 45,
+                icon: const Icon(Icons.sim_card, color: Colors.greenAccent),
+                onPressed: () async {
+                  try {
+                    await const MethodChannel('com.yourlauncher/apps')
+                        .invokeMethod('openApp', {"package": "com.android.stk"});
+                  } catch (e) {
+                    debugPrint("Failed to open SIM Toolkit: $e");
+                  }
+                },
               ),
-              const SizedBox(height: 10),
-              Text(
-                _date,
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 16,
-                  fontFamily: 'Courier',
-                ),
+              IconButton(
+                iconSize: 45,
+                icon: const Icon(Icons.call, color: Colors.greenAccent),
+                onPressed: () async {
+                  try {
+                    await const MethodChannel('com.yourlauncher/apps')
+                        .invokeMethod('openApp', {"package": "com.google.android.dialer"});
+                  } catch (e) {
+                    debugPrint("Failed to open SIM Toolkit: $e");
+                  }
+                },
               ),
-              const SizedBox(height: 30),
-              const Text(
-                "Welcome back, Wangai Samuel",
-                style: TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                  fontFamily: 'Courier',
-                ),
-              ),
-              const SizedBox(height: 50),
-
-              // "Open Apps" button
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.greenAccent,
-                  foregroundColor: Colors.black,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
+              // 🚀 Open Apps Icon (Main launcher button)
+              GestureDetector(
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AppsPage()),
                   );
                 },
-                child: const Text(
-                  "Open Apps",
-                  style: TextStyle(
-                    fontFamily: 'Courier',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.greenAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(color: Colors.greenAccent, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(18),
+                  child: const Icon(
+                    Icons.apps,
+                    size: 35,
+                    color: Colors.greenAccent,
                   ),
                 ),
               ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 15),
-                child: Text(
-                  "WS Launcher",
-                  style: TextStyle(
-                    color: Colors.greenAccent.withOpacity(0.7),
-                    fontFamily: 'Courier',
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
+
+              // 💬 Messages Icon
+              IconButton(
+                iconSize: 45,
+                icon: const Icon(Icons.message, color: Colors.greenAccent),
+                onPressed: () async {
+                  try {
+                    await const MethodChannel('com.yourlauncher/apps')
+                        .invokeMethod('openApp', {"package": "com.google.android.apps.messaging"});
+                  } catch (e) {
+                    debugPrint("Failed to open Messages: $e");
+                  }
+                },
               ),
             ],
           ),
-        ],
-      ),
+        ),
+
+        // 🖋️ Signature
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Text(
+            "WS Launcher",
+            style: TextStyle(
+              color: Colors.greenAccent.withOpacity(0.7),
+              fontFamily: 'Courier',
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ],
+)
+
     );
   }
 }
