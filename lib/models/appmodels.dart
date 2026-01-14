@@ -1,29 +1,37 @@
-import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
-class AppModel {
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+
+class AppModel extends Equatable {
   final String name;
   final String package;
-  final Uint8List? icon;
+  final Uint8List? iconBytes; // Used for first load
+  final String? iconPath;    // Used for persistent storage
 
-  AppModel({
+  const AppModel({
     required this.name,
     required this.package,
-    this.icon,
+    this.iconBytes,
+    this.iconPath,
   });
 
-  factory AppModel.fromMap(Map<dynamic, dynamic> map) {
-    Uint8List? decoded;
-    if (map['icon'] != null) {
-      try {
-        final base64Data = map['icon'].split(',').last.replaceAll('\n', '');
-        decoded = Uint8List.fromList(const Base64Decoder().convert(base64Data));
-      } catch (_) {}
-    }
+  @override
+  List<Object?> get props => [name, package, iconPath];
+
+  // Helper to get the image provider
+  ImageProvider? get iconProvider {
+    if (iconPath != null) return FileImage(File(iconPath!));
+    if (iconBytes != null) return MemoryImage(iconBytes!);
+    return null;
+  }
+
+  factory AppModel.fromMap(Map<String, dynamic> map) {
     return AppModel(
       name: map['name'] ?? '',
       package: map['package'] ?? '',
-      icon: decoded,
+      iconPath: map['iconPath'],
     );
   }
 }
