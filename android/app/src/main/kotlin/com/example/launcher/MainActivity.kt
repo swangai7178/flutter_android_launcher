@@ -13,6 +13,9 @@ import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
+import android.net.Uri
+import android.provider.Settings
+
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.yourlauncher/apps"
@@ -146,6 +149,17 @@ class MainActivity : FlutterActivity() {
     /**
      * Launches an app by its package name
      */
+
+     private fun openAppInfo(packageName: String) {
+        try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.data = Uri.parse("package:$packageName")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("Launcher", "Could not open settings for $packageName", e)
+        }
+    }
     private fun openApp(packageName: String) {
         try {
             val launchIntent = packageManager.getLaunchIntentForPackage(packageName)

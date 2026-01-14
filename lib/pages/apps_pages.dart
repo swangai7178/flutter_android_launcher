@@ -178,7 +178,7 @@ class _AppsPageState extends State<AppsPage> {
               title: const Text("APP_INFO", style: TextStyle(color: Colors.greenAccent, fontFamily: 'Courier')),
               onTap: () {
                 Navigator.pop(context);
-                context.read<AppsBloc>().openAppInfo(app.package);
+               context.read<AppsBloc>().openAppInfo(app.package);
               },
             ),
             ListTile(

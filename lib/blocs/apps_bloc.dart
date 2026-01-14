@@ -174,12 +174,15 @@ class AppsBloc extends HydratedCubit<AppsState> {
       }).toList(),
     };
   }
-  Future<void> openAppInfo(String package) async {
+  // Inside AppsBloc class
+
+Future<void> openAppInfo(String package) async {
   try {
-    // This calls the native Android side to open settings for this specific package
+    // The key must be "package" to match the Kotlin call.argument<String>("package")
     await _channel.invokeMethod('openAppInfo', {"package": package});
-  } catch (e) {
-    debugPrint("Failed to open app info: $e");
+    debugPrint("Native call successful: Opening settings for $package");
+  } on PlatformException catch (e) {
+    debugPrint("Failed to open app info: '${e.message}'.");
   }
 }
 }
