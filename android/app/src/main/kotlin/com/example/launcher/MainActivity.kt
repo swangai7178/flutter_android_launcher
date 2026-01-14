@@ -37,6 +37,18 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
 
+                    // --- ADD THIS BLOCK ---
+                    "openAppInfo" -> {
+                        val packageName = call.argument<String>("package")
+                        if (packageName != null) {
+                            openAppInfo(packageName)
+                            result.success(null)
+                        } else {
+                            result.error("ERROR", "Package name null", null)
+                        }
+                    }
+                    // ----------------------
+
                     else -> result.notImplemented()
                 }
             }
