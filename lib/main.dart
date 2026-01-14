@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:launcher/pages/homepage.dart';
 import 'blocs/time_bloc.dart';
 import 'blocs/apps_bloc.dart';
-
-void main() {
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+void main()async  {
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: await ,
+  );
   runApp(const WSLauncher());
 }
 
