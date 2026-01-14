@@ -1,11 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:launcher/models/appmodels.dart';
 import '../blocs/apps_bloc.dart';
 
-class AppsPage extends StatelessWidget {
+class AppsPage extends StatefulWidget {
   const AppsPage({super.key});
 
+  @override
+  State<AppsPage> createState() => _AppsPageState();
+}
+
+class _AppsPageState extends State<AppsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +99,9 @@ class AppsPage extends StatelessWidget {
                         
                         return ListTile(
                           onTap: () => context.read<AppsBloc>().openApp(app.package),
+                          onLongPress: (){
+                            _showAppOptions(context, app);
+                          },
                           leading: Container(
                             width: 45,
                             height: 45,
@@ -139,5 +148,51 @@ class AppsPage extends StatelessWidget {
         },
       ),
     );
+
   }
+  void _showAppOptions(BuildContext context, AppModel app) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.black,
+    shape: const RoundedRectangleBorder(
+      side: BorderSide(color: Colors.greenAccent, width: 1),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+    ),
+    builder: (context) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "OPTIONS: ${app.name.toUpperCase()}",
+              style: const TextStyle(
+                color: Colors.greenAccent,
+                fontFamily: 'Courier',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Divider(color: Colors.greenAccent),
+            ListTile(
+              leading: const Icon(Icons.info_outline, color: Colors.greenAccent),
+              title: const Text("APP_INFO", style: TextStyle(color: Colors.greenAccent, fontFamily: 'Courier')),
+              onTap: () {
+                Navigator.pop(context);
+                context.read<AppsBloc>().openAppInfo(app.package);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              title: const Text("UNINSTALL_SEQUENCE", style: TextStyle(color: Colors.redAccent, fontFamily: 'Courier')),
+              onTap: () {
+                // You can add uninstall logic here via MethodChannel as well
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 }

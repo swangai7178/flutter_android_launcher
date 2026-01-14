@@ -174,4 +174,12 @@ class AppsBloc extends HydratedCubit<AppsState> {
       }).toList(),
     };
   }
+  Future<void> openAppInfo(String package) async {
+  try {
+    // This calls the native Android side to open settings for this specific package
+    await _channel.invokeMethod('openAppInfo', {"package": package});
+  } catch (e) {
+    debugPrint("Failed to open app info: $e");
+  }
+}
 }
