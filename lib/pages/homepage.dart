@@ -15,10 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Define the same channel name used in your MainActivity.kt
   static const _channel = MethodChannel('com.yourlauncher/apps');
-
-  // State variables to hold real system data
   String _batteryLevel = "--%";
   String _ramAvailable = "-.-GB";
   Timer? _systemTimer;
