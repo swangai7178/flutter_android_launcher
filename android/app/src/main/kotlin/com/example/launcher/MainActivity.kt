@@ -15,12 +15,13 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import android.net.Uri
 import android.provider.Settings
+import android.content.Context
 
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.yourlauncher/apps"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+   override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger!!, CHANNEL)
@@ -37,7 +38,6 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
 
-                    // --- ADD THIS BLOCK ---
                     "openAppInfo" -> {
                         val packageName = call.argument<String>("package")
                         if (packageName != null) {
@@ -47,7 +47,23 @@ class MainActivity : FlutterActivity() {
                             result.error("ERROR", "Package name null", null)
                         }
                     }
-                    // ----------------------
+
+                    // --- NEW SYSTEM STATS CASES ---
+                    "getBatteryLevel" -> {
+                        val bm = getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
+                        val level = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                        result.success(level)
+                    }
+
+                    "getRamInfo" -> {
+                        val mi = android.app.ActivityManager.MemoryInfo()
+                        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                        activityManager.getMemoryInfo(mi)
+                        
+                        // Available memory in Megabytes
+                        val availableMegs = mi.availMem / 1048576L 
+                        result.success(availableMegs)
+                    }
 
                     else -> result.notImplemented()
                 }
